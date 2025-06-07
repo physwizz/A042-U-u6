@@ -466,7 +466,10 @@ static void usb_extcon_detect_cable(struct work_struct *work)
 		extcon_set_state_sync(info->edev, EXTCON_USB, false);
 }
 #endif
-
+/* HS14_U/TabA7 Lite U for AL6528AU-249/AX3565AU-309 by liufurong at 20231212 start */
+extern void pd_dpm_send_source_caps_switch(int cur);
+extern int fusb302_send_5v_source_caps(int ma);
+/* HS14_U/TabA7 Lite U for AL6528AU-249/AX3565AU-309 by liufurong at 20231212 end */
 static int mt_charger_set_property(struct power_supply *psy,
 	enum power_supply_property psp, const union power_supply_propval *val)
 {
@@ -516,6 +519,7 @@ static int mt_charger_set_property(struct power_supply *psy,
 		if (pinfo == NULL) {
 			return -EINVAL;
 		}
+		/* HS14_U/TabA7 Lite U for AL6528AU-249/AX3565AU-309 by liufurong at 20231212 start */
 		if (val->intval == SEC_SLATE_OFF || val->intval == SEC_SLATE_MODE) {
 			mtk_chg->input_suspend = val->intval;
 			pinfo->input_suspend_flag = mtk_chg->input_suspend;
@@ -528,12 +532,30 @@ static int mt_charger_set_property(struct power_supply *psy,
 				charger_manager_input_suspend(cti->chg_consumer,
 					MAIN_CHARGER,
 					false);
+				if (mtk_chg->batt_slate_mode == SEC_SMART_SWITCH_SRC || mtk_chg->batt_slate_mode == SEC_SMART_SWITCH_SLATE) {
+					if (tcpc_info == FUSB302) {
+						fusb302_send_5v_source_caps(1000);
+					} else {
+						pd_dpm_send_source_caps_switch(1000);
+					}
+				}
 			}
 		} else if (val->intval == SEC_SMART_SWITCH_SLATE) {
+			if (tcpc_info == FUSB302) {
+				fusb302_send_5v_source_caps(500);
+			} else {
+				pd_dpm_send_source_caps_switch(500);
+			}
 			pr_err("%s:  dont suppot this slate mode %d\n", __func__, val->intval);
 		} else if (val->intval == SEC_SMART_SWITCH_SRC) {
+			if (tcpc_info == FUSB302) {
+				fusb302_send_5v_source_caps(0);
+			} else {
+				pd_dpm_send_source_caps_switch(0);
+			}
 			pr_err("%s:  dont suppot this slate mode %d\n", __func__, val->intval);
 		}
+		/* HS14_U/TabA7 Lite U for AL6528AU-249/AX3565AU-309 by liufurong at 20231212 end */
 		mtk_chg->batt_slate_mode = val->intval;;
 		pr_err("%s:  set slate mode %d\n", __func__, val->intval);
 		break;

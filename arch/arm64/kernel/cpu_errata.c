@@ -731,15 +731,6 @@ const struct arm64_cpu_capabilities arm64_errata[] = {
 		ERRATA_MIDR_REV_RANGE(MIDR_CORTEX_A53, 0, 0, 4),
 		MIDR_FIXED(0x4, BIT(8)),
 	},
-
-#endif
-#ifdef CONFIG_ARM64_ERRATUM_835769
-	{
-       /* Cortex-A53 all versions */
-                .desc = "ARM erratum 835769",
-                .capability = ARM64_WORKAROUND_835769,
-               ERRATA_MIDR_REV_RANGE(MIDR_CORTEX_A53, 0, 0, 4),
-       },
 #endif
 #ifdef CONFIG_ARM64_ERRATUM_845719
 	{
@@ -859,7 +850,13 @@ const struct arm64_cpu_capabilities arm64_errata[] = {
 		.matches = has_ssbd_mitigation,
 		.midr_range_list = arm64_ssb_cpus,
 	},
-
+	{
+		.desc = "Spectre-BHB",
+		.capability = ARM64_SPECTRE_BHB,
+		.type = ARM64_CPUCAP_LOCAL_CPU_ERRATUM,
+		.matches = is_spectre_bhb_affected,
+		.cpu_enable = spectre_bhb_enable_mitigation,
+	},
 #ifdef CONFIG_ARM64_ERRATUM_1463225
 	{
 		.desc = "ARM erratum 1463225",
